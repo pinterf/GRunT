@@ -44,6 +44,10 @@
 
 // Change History:
 
+// v1.0.2 (pinterf, 19th December 2016, 2020):
+// - Moved to 2.6 header from Avisynth+ project. Automatic registration as nice filter
+// - Added resource file
+
 // v1.0.1 (Gavino, 27th September 2008):
 // - fix for Avisynth 2.5.7 (have to use alternative names for filters, eg GScriptClip)
 
@@ -219,6 +223,15 @@ public:
 	static AVSValue Create(const char* name, const int argPos, const char* argName,
 	                       AVSValue args, IScriptEnvironment* env);
 	static AVSValue CreateConditionalFilter2(AVSValue args, IScriptEnvironment* env);
+  int __stdcall SetCacheHints(int cachehints, int frame_range) override {
+    switch (cachehints)
+    {
+    case CACHE_GET_MTMODE:
+      return MT_NICE_FILTER;
+    default:
+      return GenericVideoFilter::SetCacheHints(cachehints, frame_range);
+    }
+  }
 };
 
 bool RTWrapper::defLocal = false;
@@ -473,7 +486,22 @@ AVSValue __cdecl VPlaneMinMaxDifference(AVSValue args, void* user_data, IScriptE
     return RTFunction("VPlaneMinMaxDifference", args, env);
 }
 
+#ifdef AVISYNTH_PLUGIN_25
 extern "C" __declspec(dllexport) const char* __stdcall AvisynthPluginInit2(IScriptEnvironment* env) {
+#else
+/* New 2.6 requirement!!! */
+// Declare and initialise server pointers static storage.
+const AVS_Linkage *AVS_linkage = 0;
+
+/* New 2.6 requirement!!! */
+// DLL entry point called from LoadPlugin() to setup a user plugin.
+extern "C" __declspec(dllexport) const char* __stdcall
+AvisynthPluginInit3(IScriptEnvironment* env, const AVS_Linkage* const vectors) {
+
+  /* New 2.6 requirment!!! */
+  // Save the server pointers.
+  AVS_linkage = vectors;
+#endif
     // get Avisynth version number, for compatibility check:
     float avsVersion = 0;
     try {
