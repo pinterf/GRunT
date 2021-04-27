@@ -62,8 +62,13 @@
 
 /* -------------------------------------------------------------------------------------- */
 
-#include <windows.h>
 #include <avisynth.h>
+
+#ifdef _WIN32
+#include <Windows.h>
+#else
+#include <ctype.h>
+#endif
 
 class Binding {
   char* name;
